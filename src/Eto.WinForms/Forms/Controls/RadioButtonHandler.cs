@@ -6,6 +6,12 @@ namespace Eto.WinForms.Forms.Controls
 
 		public class EtoRadioButton : swf.RadioButton
 		{
+			public EtoRadioButton()
+			{
+				// PATCH: Port WinForms dark mode changes
+				if (swf.Application.IsDarkModeEnabled)
+					FlatStyle = swf.FlatStyle.Standard;
+			}
 		}
 
 		public RadioButtonHandler()

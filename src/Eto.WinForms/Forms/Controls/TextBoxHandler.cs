@@ -7,6 +7,10 @@ namespace Eto.WinForms.Forms.Controls
 		public EtoTextBox()
 		{
 			MaxLength = 0;
+
+			// PATCH: Port WinForms dark mode changes
+			if (swf.Application.IsDarkModeEnabled)
+				BorderStyle = swf.BorderStyle.FixedSingle;
 		}
 
 		public event EventHandler<CancelEventArgs> Copying;

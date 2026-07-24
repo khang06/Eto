@@ -10,6 +10,16 @@ namespace Eto.WinForms.Forms.Controls
 			Control.DropDownStyle = swf.ComboBoxStyle.DropDown;
 			Control.MinSize = new sd.Size(100, 0);
 			Control.TextChanged += ControlOnTextChanged;
+
+			// PATCH: Port WinForms dark mode changes
+			if (swf.Application.IsDarkModeEnabled)
+			{
+				Control.FlatStyle = swf.FlatStyle.System;
+
+				// Stupid hack I still have to do to force invalidate the style
+				Control.DrawMode = swf.DrawMode.OwnerDrawFixed;
+				Control.DrawMode = swf.DrawMode.Normal;
+			}
 		}
 
 		void ControlOnTextChanged(object sender, EventArgs e)

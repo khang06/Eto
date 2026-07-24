@@ -21,6 +21,19 @@ namespace Eto.WinForms.Forms.Controls
 
 	public class EtoComboBox : swf.ComboBox
 	{
+		public EtoComboBox()
+		{
+			// PATCH: Port WinForms dark mode changes
+			if (swf.Application.IsDarkModeEnabled)
+			{
+				FlatStyle = swf.FlatStyle.Flat;
+
+				// Stupid hack I still have to do to force invalidate the style
+				DrawMode = swf.DrawMode.OwnerDrawFixed;
+				DrawMode = swf.DrawMode.Normal;
+			}
+		}
+
 		sd.Size? cachedSize;
 		public void ResetSize()
 		{
