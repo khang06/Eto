@@ -7,4 +7,4 @@ pause
 )
 
 set BUILD_DIR=%~dp0build
-dotnet msbuild -v:minimal -t:Package -p:SetVersion=%1 "%BUILD_DIR%\Build.proj"
+dotnet msbuild -v:minimal -t:Package -p:SetVersion=%1 -property:Configuration=Release "%BUILD_DIR%\Build.proj"
