@@ -292,6 +292,8 @@ namespace Eto.GtkSharp.Forms
 		[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 		delegate void DeviceFinished(IntPtr data, IntPtr device);
 		[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+		delegate void DevicePrimarySelection(IntPtr data, IntPtr device, IntPtr offer);
+		[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 		delegate void OfferOffer(IntPtr data, IntPtr offer, IntPtr mime);
 		[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 		delegate void SourceSend(IntPtr data, IntPtr source, IntPtr mime, int fd);
@@ -390,8 +392,10 @@ namespace Eto.GtkSharp.Forms
 					return false;
 				wl_proxy_add_listener(device, deviceVtable, IntPtr.Zero);
 
-				// second roundtrip: receive the initial selection offer
-				wl_display_roundtrip(display);
+				// second roundtrip: receive the initial selection offer. This also validates that our
+				// hand-built protocol descriptors match the compositor's event set.
+				if (wl_display_roundtrip(display) < 0)
+					return false;
 
 				// dedicated dispatch thread + wakeup pipe for clean shutdown
 				wakePipe = new int[2];
@@ -725,6 +729,20 @@ namespace Eto.GtkSharp.Forms
 
 			void OnDeviceFinished(IntPtr data, IntPtr dev) { }
 
+			void OnDevicePrimarySelection(IntPtr data, IntPtr dev, IntPtr offer)
+			{
+				// Eto's Clipboard API represents the regular clipboard, not Wayland's primary selection.
+				// ext-data-control v1 nevertheless always includes this event, so consume it and release
+				// its offer rather than letting an undeclared event make libwayland fail the connection.
+				if (offer == IntPtr.Zero)
+					return;
+				lock (stateLock)
+				{
+					pendingOffers.Remove(offer);
+					wl_proxy_marshal_array_flags(offer, 1, IntPtr.Zero, 0, WL_MARSHAL_FLAG_DESTROY, null);
+				}
+			}
+
 			// Maximum time a single selection transfer may take before we give up. A consumer that stops
 			// reading must never wedge us; this only bounds a stuck transfer, normal ones finish far sooner.
 			const int SendTimeoutMs = 5000;
@@ -839,7 +857,8 @@ namespace Eto.GtkSharp.Forms
 				DeviceDataOffer ddo = OnDeviceDataOffer;
 				DeviceSelection ds = OnDeviceSelection;
 				DeviceFinished df = OnDeviceFinished;
-				deviceVtable = Vtable(ddo, ds, df);
+				DevicePrimarySelection dps = OnDevicePrimarySelection;
+				deviceVtable = Vtable(ddo, ds, df, dps);
 
 				OfferOffer oo = OnOfferOffer;
 				offerVtable = Vtable(oo);
@@ -882,18 +901,34 @@ namespace Eto.GtkSharp.Forms
 				};
 				FillInterface(ifManager, p + "manager_v1", 1, mgrMethods, null);
 
-				// device: requests set_selection(?o), destroy(); events data_offer(n), selection(?o), finished()
-				var devMethods = new[]
-				{
-					Msg("set_selection", "?o", ifSource),
-					Msg("destroy", "", null)
-				};
-				var devEvents = new[]
-				{
-					Msg("data_offer", "n", ifOffer),
-					Msg("selection", "?o", ifOffer),
-					Msg("finished", "", null)
-				};
+				// ext v1 includes primary selection in its initial version. zwlr adds it only in v2,
+				// and we intentionally bind zwlr v1, so the two descriptor tables are not identical.
+				var devMethods = ext
+					? new[]
+					{
+						Msg("set_selection", "?o", ifSource),
+						Msg("destroy", "", null),
+						Msg("set_primary_selection", "?o", ifSource)
+					}
+					: new[]
+					{
+						Msg("set_selection", "?o", ifSource),
+						Msg("destroy", "", null)
+					};
+				var devEvents = ext
+					? new[]
+					{
+						Msg("data_offer", "n", ifOffer),
+						Msg("selection", "?o", ifOffer),
+						Msg("finished", "", null),
+						Msg("primary_selection", "?o", ifOffer)
+					}
+					: new[]
+					{
+						Msg("data_offer", "n", ifOffer),
+						Msg("selection", "?o", ifOffer),
+						Msg("finished", "", null)
+					};
 				FillInterface(ifDevice, p + "device_v1", 1, devMethods, devEvents);
 
 				// source: requests offer(s), destroy(); events send(sh), cancelled()
