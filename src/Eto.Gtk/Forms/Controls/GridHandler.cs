@@ -30,6 +30,7 @@ namespace Eto.GtkSharp.Forms.Controls
 		protected Dictionary<int, (int column, GLib.GType type)> ColumnMap { get { return columnMap; } }
 
 		public override Gtk.Widget ContainerControl => ScrolledWindow;
+		public override Gtk.Widget BackgroundControl => Control;
 
 		public override bool ShouldTranslatePoints => true;
 
