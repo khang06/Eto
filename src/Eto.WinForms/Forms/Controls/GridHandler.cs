@@ -543,10 +543,10 @@ namespace Eto.WinForms.Forms.Controls
 
 		public void SelectRow(int row)
 		{
+			_ = Control.Handle;
 			if (!AllowMultipleSelection)
 				Control.CurrentCell = Control.Rows[row].Cells[0];
-			else
-				Control.Rows[row].Selected = true;
+			Control.Rows[row].Selected = true;
 			isFirstSelection = false;
 		}
 
