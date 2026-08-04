@@ -537,8 +537,13 @@ namespace Eto.WinForms.Forms.Controls
 
 		public void SelectAll()
 		{
+			_ = Control.Handle;
+			if (isFirstSelection)
+			{
+				Control.ClearSelection();
+				isFirstSelection = false;
+			}
 			Control.SelectAll();
-			isFirstSelection = false;
 		}
 
 		public void SelectRow(int row)
