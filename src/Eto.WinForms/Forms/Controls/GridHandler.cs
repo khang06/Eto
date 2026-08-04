@@ -537,17 +537,26 @@ namespace Eto.WinForms.Forms.Controls
 
 		public void SelectAll()
 		{
+			_ = Control.Handle;
+			if (isFirstSelection)
+			{
+				Control.ClearSelection();
+				isFirstSelection = false;
+			}
 			Control.SelectAll();
-			isFirstSelection = false;
 		}
 
 		public void SelectRow(int row)
 		{
 			_ = Control.Handle;
-			if (!AllowMultipleSelection)
+			if (isFirstSelection)
+			{
+				Control.ClearSelection();
+				isFirstSelection = false;
+			}
+			if (!AllowMultipleSelection || Control.SelectedRows.Count == 0)
 				Control.CurrentCell = Control.Rows[row].Cells[0];
 			Control.Rows[row].Selected = true;
-			isFirstSelection = false;
 		}
 
 		public void UnselectRow(int row)
