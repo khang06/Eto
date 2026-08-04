@@ -554,7 +554,7 @@ namespace Eto.WinForms.Forms.Controls
 				Control.ClearSelection();
 				isFirstSelection = false;
 			}
-			if (!AllowMultipleSelection)
+			if (!AllowMultipleSelection || Control.SelectedRows.Count == 0)
 				Control.CurrentCell = Control.Rows[row].Cells[0];
 			Control.Rows[row].Selected = true;
 		}
