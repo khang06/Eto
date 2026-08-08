@@ -59,7 +59,7 @@ namespace Eto.GtkSharp.Forms.Cells
 			
 			protected override void OnRender (Cairo.Context cr, Gtk.Widget widget, Gdk.Rectangle background_area, Gdk.Rectangle cell_area, Gtk.CellRendererState flags)
 			{
-				using (var graphics = new Graphics(new GraphicsHandler(cr, null, false)))
+				using (var graphics = new Graphics(new GraphicsHandler(widget, cr)))
 				{
 					var item = Item;
 #pragma warning disable 618
@@ -111,4 +111,3 @@ namespace Eto.GtkSharp.Forms.Cells
 		}
 	}
 }
-

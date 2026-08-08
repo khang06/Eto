@@ -379,7 +379,7 @@ namespace Eto.GtkSharp.Drawing
 		{
 			var oldAA = AntiAlias;
 			AntiAlias = true;
-			SetOffset(false);
+			SetOffset(true);
 			using (var layout = CreateLayout())
 			{
 				font.Apply(layout);
@@ -387,8 +387,7 @@ namespace Eto.GtkSharp.Drawing
 				Control.Save();
 				brush.Apply(this);
 				Control.MoveTo(x, y);
-				Pango.CairoHelper.LayoutPath(Control, layout);
-				Control.Fill();
+				Pango.CairoHelper.ShowLayout(Control, layout);
 				Control.Restore();
 			}
 			AntiAlias = oldAA;
@@ -397,7 +396,7 @@ namespace Eto.GtkSharp.Drawing
 		{
 			var oldAA = AntiAlias;
 			AntiAlias = true;
-			SetOffset(false);
+			SetOffset(true);
 			var handler = (FormattedTextHandler)formattedText.Handler;
 			handler.Draw(this, Control, location);
 			AntiAlias = oldAA;
