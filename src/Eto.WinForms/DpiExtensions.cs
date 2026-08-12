@@ -2,11 +2,13 @@ namespace Eto.WinForms;
 
 static class DpiExtensions
 {
+	static int Scale(double value) => (int)Math.Round(value, MidpointRounding.AwayFromZero);
+
 	public static Size DeviceUnitsToLogical(this swf.Control control, sd.Size size)
 	{
 #if NET9_0_OR_GREATER
 		var dpi = control.DeviceDpi;
-		return new Size((int)Math.Ceiling(size.Width * 96.0 / dpi), (int)Math.Ceiling(size.Height * 96.0 / dpi));
+		return new Size(Scale(size.Width * 96.0 / dpi), Scale(size.Height * 96.0 / dpi));
 #else
 		return size.ToEto();
 #endif
@@ -26,7 +28,7 @@ static class DpiExtensions
 	{
 #if NET9_0_OR_GREATER
 		var dpi = control?.DeviceDpi ?? 96;
-		return new Point((int)Math.Ceiling(point.X * 96.0 / dpi), (int)Math.Ceiling(point.Y * 96.0 / dpi));
+		return new Point(Scale(point.X * 96.0 / dpi), Scale(point.Y * 96.0 / dpi));
 #else
 		return point.ToEto();
 #endif
@@ -35,7 +37,7 @@ static class DpiExtensions
 	{
 #if NET9_0_OR_GREATER
 		var dpi = control?.DeviceDpi ?? 96;
-		return (int)Math.Ceiling(size * 96.0 / dpi);
+		return Scale(size * 96.0 / dpi);
 #else
 		return size;
 #endif
@@ -45,7 +47,7 @@ static class DpiExtensions
 	{
 #if NET9_0_OR_GREATER
 		var dpi = control?.DeviceDpi ?? 96;
-		return new sd.Size((int)Math.Ceiling(size.Width * dpi / 96.0), (int)Math.Ceiling(size.Height * dpi / 96.0));
+		return new sd.Size(Scale(size.Width * dpi / 96.0), Scale(size.Height * dpi / 96.0));
 #else
 		return size.ToSD();
 #endif
@@ -55,7 +57,7 @@ static class DpiExtensions
 	{
 #if NET9_0_OR_GREATER
 		var dpi = control?.DeviceDpi ?? 96;
-		return new sd.Point((int)Math.Ceiling(point.X * dpi / 96.0), (int)Math.Ceiling(point.Y * dpi / 96.0));		
+		return new sd.Point(Scale(point.X * dpi / 96.0), Scale(point.Y * dpi / 96.0));
 #else
 		return point.ToSD();
 #endif

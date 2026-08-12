@@ -344,13 +344,16 @@ namespace Eto.WinForms.Drawing
 		public void DrawText(Font font, Brush brush, float x, float y, string text)
 		{
 			SetOffset(false);
-			var sdFont = GetScaledFont(font);
 			if (!UseCompatibleTextRendering && brush is SolidBrush solidBrush)
 			{
-				swf.TextRenderer.DrawText(Control, text, sdFont, new sd.Point((int)x, (int)y), solidBrush.Color.ToSD(), DefaultTextFormat);
+				var dpiScaleX = Control.DpiX / 96f;
+				var dpiScaleY = Control.DpiY / 96f;
+				var location = new sd.Point((int)(x * dpiScaleX), (int)(y * dpiScaleY));
+				swf.TextRenderer.DrawText(Control, text, FontHandler.GetControl(font), location, solidBrush.Color.ToSD(), DefaultTextFormat);
 			}
 			else
 			{
+				var sdFont = GetScaledFont(font);
 				var size = MeasureString(font, text);
 				var bounds = new RectangleF(x, y, size.Width, size.Height);
 				Control.DrawString(text, sdFont, brush.ToSD(bounds), x, y, DefaultStringFormat);
@@ -396,7 +399,7 @@ namespace Eto.WinForms.Drawing
 			}
 
 			var size = swf.TextRenderer.MeasureText(Control, text, font.ToSD(), sd.Size.Empty, DefaultTextFormat);
-			return size.ToEto();
+			return new SizeF(size.Width * 96f / Control.DpiX, size.Height * 96f / Control.DpiY);
 		}
 
 		public void Flush()

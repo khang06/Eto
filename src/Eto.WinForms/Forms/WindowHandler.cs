@@ -77,18 +77,20 @@ namespace Eto.WinForms.Forms
 		{
 			get
 			{
-				return (Widget.Loaded ? content.Size : content.MinimumSize).ToEto();
+				var clientContent = ContainerContentControl;
+				return DeviceUnitsToLogical(Widget.Loaded ? clientContent.Size : clientContent.MinimumSize);
 			}
 			set
 			{
+				var clientContent = ContainerContentControl;
 				if (Widget.Loaded)
 				{
-					var size = DeviceUnitsToLogical(Control.Size - content.Size);
+					var size = DeviceUnitsToLogical(Control.Size - clientContent.Size);
 					Control.Size = LogicalToDeviceUnits(new Size(value.Width + size.Width, value.Height + size.Height));
 				}
 				else
 				{
-					content.MinimumSize = content.MaximumSize = LogicalToDeviceUnits(value);
+					clientContent.MinimumSize = clientContent.MaximumSize = LogicalToDeviceUnits(value);
 				}
 				clientWidthSet = value.Width != -1;
 				clientHeightSet = value.Height != -1;
@@ -193,7 +195,7 @@ namespace Eto.WinForms.Forms
 			Control.AutoSize = false;
 			Control.Size = size;
 			content.MinimumSize = content.MaximumSize = sd.Size.Empty;
-			ContainerContentControl.MinimumSize = sd.Size.Empty;
+			ContainerContentControl.MinimumSize = ContainerContentControl.MaximumSize = sd.Size.Empty;
 
 			Callback.OnLoadComplete(Widget, EventArgs.Empty);
 		}
@@ -276,6 +278,13 @@ namespace Eto.WinForms.Forms
 					break;
 				case Window.LocationChangedEvent:
 					Control.LocationChanged += (sender, e) => Callback.OnLocationChanged(Widget, EventArgs.Empty);
+					break;
+				case Eto.Forms.Control.SizeChangedEvent:
+					Control.SizeChanged += (sender, e) =>
+					{
+						Control.PerformLayout();
+						Callback.OnSizeChanged(Widget, e);
+					};
 					break;
 				default:
 					base.AttachEvent(id);
@@ -475,10 +484,10 @@ namespace Eto.WinForms.Forms
 
 		public new Point Location
 		{
-			get => Control.DeviceUnitsToLogical(Control.Location);
+			get => Point.Round(Control.Location.ToEto().ScreenToLogical(swf.Screen.FromControl(Control)));
 			set
 			{
-				Control.Location = Control.LogicalToDeviceUnits(value);
+				Control.Location = ((PointF)value).LogicalToScreen().ToSD();
 				Control.StartPosition = swf.FormStartPosition.Manual;
 			}
 		}
@@ -490,7 +499,7 @@ namespace Eto.WinForms.Forms
 			{
 				// Form.Bounds sets the location and size in a single operation.
 				UserPreferredSize = value.Size;
-				Control.Bounds = new sd.Rectangle(LogicalToDeviceUnits(value.Location), LogicalToDeviceUnits(value.Size));
+				Control.Bounds = ((RectangleF)value).LogicalToScreen().ToSD();
 				Control.StartPosition = swf.FormStartPosition.Manual;
 				clientWidthSet = value.Width != -1;
 				clientHeightSet = value.Height != -1;
